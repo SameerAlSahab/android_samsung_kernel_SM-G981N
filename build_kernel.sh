@@ -59,14 +59,16 @@ export KBUILD_BUILD_HOST="Dark-Angel"
 # do not modify TC_DIR and export PATCH it's been including with the proton-clang dir
 
 TC_DIR="$(pwd)/proton-clang"
-
+git clone  https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth=1 gcc
+export CROSS_COMPILE_ARM32=$(pwd)/gcc/bin/arm-linux-androideabi-    
+export CROSS_COMPILE=$(pwd)/gcc/bin/aarch64-linux-android-
 export PATH="$TC_DIR/bin:$PATH"
 export CONFIG_NO_ERROR_ON_MISMATCH=y
 export CONFIG_DEBUG_SECTION_MISMATCH=y
 mkdir -p out
 make O=out ARCH=arm64 $DEFCONFIG
 
-make -j$(nproc --all) O=out ARCH=arm64 CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump W=1 STRIP=llvm-strip CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee log.txt
+make -j$(nproc --all) O=out ARCH=arm64 CC=clang AR=llvm-ar NM=llvm-nm KCFLAGS=-w OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump W=1 STRIP=llvm-strip CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee log.txt
 
 if [ -f out/arch/arm64/boot/Image ] ; then
     echo -e "$cyan===========================\033[0m"
