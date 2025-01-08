@@ -15,7 +15,7 @@ echo -e "\n \033[91mproton-clang dir not found!!!\033[0m \n"
 sleep 2
 echo -e "\033[93m wait.. cloning proton-clang...\033[0m \n"
 sleep 2
-git clone https://github.com/kdrag0n/proton-clang.git --depth=1 $(pwd)/../proton-clang
+git clone https://github.com/kdrag0n/proton-clang.git --depth=1 $(pwd)/proton-clang
 sleep 1
 echo
 echo -e "\n \033[92mokay cloning done...\033[0m \n"
