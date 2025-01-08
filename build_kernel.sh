@@ -4,15 +4,13 @@ sudo apt-get install clang-format clang-tidy clang-tools clang clangd libc++-dev
 
 sudo apt-get install gcc-aarch64-linux-gnu
 
-git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9
-wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r450784e.tar.gz
-tar -xzf clang-r450784e.tar.gz
-
+git clone  https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 gcc
+git clone --depth=1 https://gitlab.com/LeCmnGend/clang.git -b clang-18 clang-18 
 export ARCH=arm64
 mkdir out
 
-export BUILD_CROSS_COMPILE=$(pwd)/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-export KERNEL_LLVM_BIN=$(pwd)/clang-r450784e/bin/clang
+export BUILD_CROSS_COMPILE=$(pwd)/gcc/bin/aarch64-linux-android-
+export KERNEL_LLVM_BIN=$(pwd)/clang-18/bin/clang
 CLANG_TRIPLE=aarch64-linux-gnu-
 KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
 
