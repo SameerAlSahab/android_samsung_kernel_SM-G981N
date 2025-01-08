@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-20.04
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
       - name: setup environment 
         run: |
                   sudo apt-get update && sudo apt-get install bc flex git ccache automake lzop bison gperf build-essential zip curl zlib1g-dev zlib1g-dev g++-multilib python3-networkx libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng -y
@@ -33,16 +33,28 @@ jobs:
                   curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
                   chmod a+rx ~/.bin/repo
 
-      - name: Set up Python 2
-        uses: actions/setup-python@v4
-        with:
-         python-version: '2.7'
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev curl
+
+      - name: Download and Compile Python 2.7
+        run: |
+          curl -O https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
+          tar -xf Python-2.7.18.tgz
+          cd Python-2.7.18
+          ./configure --enable-optimizations
+          make -j$(nproc)
+          sudo make altinstall  # Install as `python2.7`
+
+      - name: Install pip for Python 2.7
+        run: |
+          curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python2.7
+          python2.7 -m pip install --upgrade pip
 
       - name: Install dependencies
-        run: |
-         python -m pip install --upgrade pip
-         pip install -r requirements.txt  
-         
+        run: python2.7 -m pip install -r requirements.txt
+
       - name: set permissions
         run: sudo chmod +rwx *
       
