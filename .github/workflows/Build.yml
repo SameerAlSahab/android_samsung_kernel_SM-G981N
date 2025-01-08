@@ -24,7 +24,7 @@ jobs:
                   # install python 2
                   export PATH=$PATH:$(pwd)/.local/bin
                   sudo apt install python3-virtualenv -y
-                  sudo apt install python -y
+                  sudo apt install flex
                   sudo apt install openssl -y
                   sudo aptitude install libssl-dev -y
                   # install repo
