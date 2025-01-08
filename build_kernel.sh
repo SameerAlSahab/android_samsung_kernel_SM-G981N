@@ -58,9 +58,6 @@ export KBUILD_BUILD_HOST="Dark-Angel"
 # do not modify TC_DIR and export PATCH it's been including with the proton-clang dir
 
 TC_DIR="$(pwd)/proton-clang"
-git clone  https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 --depth=1 gcc
-export CROSS_COMPILE_ARM32=$(pwd)/gcc/bin/arm-linux-androideabi-    
-export CROSS_COMPILE=$(pwd)/gcc/bin/aarch64-linux-android-
 export PATH="$TC_DIR/bin:$PATH"
 export CONFIG_NO_ERROR_ON_MISMATCH=y
 export CONFIG_DEBUG_SECTION_MISMATCH=y
