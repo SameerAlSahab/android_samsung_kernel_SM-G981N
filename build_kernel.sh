@@ -15,7 +15,7 @@ echo -e "\n \033[91mproton-clang dir not found!!!\033[0m \n"
 sleep 2
 echo -e "\033[93m wait.. cloning proton-clang...\033[0m \n"
 sleep 2
-git clone https://gitlab.com/LeCmnGend/clang.git -b clang-18 --depth=1 $(pwd)/proton-clang
+git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r536225 --depth=1 $(pwd)/proton-clang
 sleep 1
 echo
 echo -e "\n \033[92mokay cloning done...\033[0m \n"
