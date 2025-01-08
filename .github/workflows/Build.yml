@@ -1,0 +1,28 @@
+name: Android Kernel
+on:
+  workflow_dispatch:
+
+jobs:
+
+  buildkernel:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+      # Runs a single command using the runners shell
+      - name: Build kernel 
+        env:
+           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+           TELEGRAM_CHATID: ${{ secrets.TELEGRAM_CHATID }}
+            #echo "ANYKERNEL_SOURCE=$(cat config.env | grep -w "https://github.com/MohamedDevvv/AnyKernel3" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+            #echo "ANYKERNEL_SOURCE_BRANCH=$(cat config.env | grep -w "master" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
+        run: bash build_kernel.sh
+
+      - name: Release build
+        uses: appleboy/telegram-action@master
+        with:
+         to: ${{ secrets.CHANNEL_ID }}
+         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+         message: Kernel is built!, took ${{ steps.build.outputs.elapsed_time }} seconds.
+         document: ${{ steps.build.outputs.outfile }}
