@@ -9,20 +9,20 @@ jobs:
     runs-on: ubuntu-20.04
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
-      - name: setup environment 
-        run: |
-                  sudo apt update
-                  sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev curl
-                  sudo apt-get update && sudo apt-get install bc flex git ccache automake lzop bison gperf build-essential zip curl zlib1g-dev zlib1g-dev g++-multilib python3-networkx libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng -y
-                  curl -O https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
-                  tar -xf Python-2.7.18.tgz
-                  cd Python-2.7.18
-                  ./configure --enable-optimizations
-                  make -j$(nproc)
-                  sudo make altinstall
-                  sudo apt-get install git aptitude make gcc -y                
-                  sudo apt install python-is-python3 build-essential openssl pip -y
+     - uses: actions/checkout@v4
+     - uses: LizardByte/setup-python-action@master
+       with:
+         python-version: '2.7'
+     - run: python my_script.py
+     
+     - uses: actions/checkout@v2
+     - name: setup environment 
+       run: |
+               sudo apt update
+               sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev curl
+               sudo apt-get update && sudo apt-get install bc flex git ccache automake lzop bison gperf build-essential zip curl zlib1g-dev zlib1g-dev g++-multilib python3-networkx libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng -y
+               sudo apt-get install git aptitude make gcc -y                
+               sudo apt install python-is-python3 build-essential openssl pip -y
                   # Inease linux swapfile size (works best on SSD)
                   #sudo swapoff -a
                   #sudo dd if=/dev/zero of=/swapfile bs=4G count=8
@@ -30,7 +30,7 @@ jobs:
                   #sudo swapon /swapfile
                   #free -m
                   # install python 2
-                  cd ..
+                  
                   export PATH=$PATH:$(pwd)/.local/bin
                   sudo apt install python3-virtualenv -y
                   sudo apt install flex
@@ -43,20 +43,20 @@ jobs:
                   chmod a+rx ~/.bin/repo
                   
 
-      - name: set permissions
-        run: sudo chmod +rwx *
+     - name: set permissions
+       run: sudo chmod +rwx *
       
-      - name: Build kernel 
-        env:
+     - name: Build kernel 
+       env:
            TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
            TELEGRAM_CHATID: ${{ secrets.TELEGRAM_CHATID }}
             #echo "ANYKERNEL_SOURCE=$(cat config.env | grep -w "https://github.com/MohamedDevvv/AnyKernel3" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
             #echo "ANYKERNEL_SOURCE_BRANCH=$(cat config.env | grep -w "master" | head -n 1 | cut -d "=" -f 2)" >> $GITHUB_ENV
-        run: bash build_kernel.sh
+       run: bash build_kernel.sh
 
-      - name: Release build
-        uses: appleboy/telegram-action@master
-        with:
+     - name: Release build
+       uses: appleboy/telegram-action@master
+       with:
          to: ${{ secrets.CHANNEL_ID }}
          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
          message: Kernel is built!, took ${{ steps.build.outputs.elapsed_time }} seconds.
