@@ -13,8 +13,7 @@ jobs:
       - name: setup environment 
         run: |
                   sudo add-apt-repository universe -y
-                  sudo apt update
-                  sudo apt install python2
+                  
                   sudo apt-get update && sudo apt-get install bc flex git ccache automake lzop bison gperf build-essential zip curl zlib1g-dev zlib1g-dev g++-multilib python3-networkx libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng -y
                   sudo apt-get install git aptitude make gcc -y                
                   sudo apt install python-is-python3 build-essential openssl pip -y
