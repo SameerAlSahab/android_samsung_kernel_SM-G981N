@@ -1074,7 +1074,7 @@ def parse_sections(vmlinux):
 	section_idx = 0
 	while True:
 		try:
-			line = next(it)
+			line = next(it).decode('utf-8')  # Decode bytes to string
 		except StopIteration:
 			break
 
@@ -1091,7 +1091,6 @@ def parse_sections(vmlinux):
 			r'\s+(?P<size>{hex_re})'
 			r'\s+(?P<address>{hex_re})'
 			r'\s+(?P<lma>{hex_re})'
-			r'\s+(her>hex_re})'
 			r'\s+(?P<offset>{hex_re})'
 			r'\s+(?P<align>[^\s]+)'
 			).format(hex_re=hex_re), line)
@@ -1108,7 +1107,7 @@ def parse_sections(vmlinux):
 				[int, ['number']],
 				[parse_power, ['align']]]))
 
-			line = next(it)
+			line = next(it).decode('utf-8')  # Decode bytes to string
 			# CONTENTS, ALLOC, LOAD, READONLY, CODE
 			m = re.search((
 			r'\s+(?P<type>.*)'
