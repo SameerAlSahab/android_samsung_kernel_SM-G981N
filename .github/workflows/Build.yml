@@ -5,14 +5,12 @@ on:
 jobs:
 
   buildkernel:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-lastest
 
     steps:
       # Checkout repository
       - uses: actions/checkout@v4
-      
-      - name: Clean previous build
-        run: make clean
+    
         
       - name: Initialize submodules
         run: git submodule update --init --recursive
@@ -37,8 +35,9 @@ jobs:
         run: chmod +x build_kernel.sh
         
       - name: Clear cache
-        run: rm -rf ~/.cache
-        
+        run: | 
+             rm -rf ~/.cache
+             rm -rf /tmp/*
           
       # Build kernel with debug mode
       - name: Build kernel
