@@ -7,9 +7,6 @@ sudo apt-get install clang-format clang-tidy clang-tools clang clangd libc++-dev
 
 sudo apt-get install gcc-aarch64-linux-gnu
 
-git clone https://github.com/Mohamed4k/SM-G981N_13_Kernel_Source.git
-cd SM-G981N_13_Kernel_Source
-
 git clone https://gitlab.com/LeCmnGend/clang.git -b clang-18 --depth=1 $(pwd)/proton-clang
 
 
