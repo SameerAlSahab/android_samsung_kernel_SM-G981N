@@ -29,7 +29,15 @@ jobs:
       # Set permissions
       - name: Set permissions
         run: chmod +x build_kernel.sh
-      
+        
+      - name: Clear cache
+        run: rm -rf ~/.cache
+        
+      - name: Build project
+        run: |
+          as -o output.o input.s
+          gcc -o output output.o
+          
       # Build kernel with debug mode
       - name: Build kernel
         env:
