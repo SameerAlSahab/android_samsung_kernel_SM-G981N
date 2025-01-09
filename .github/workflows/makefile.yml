@@ -5,26 +5,17 @@ on:
 jobs:
 
   buildkernel:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       # Checkout repository
       - uses: actions/checkout@v4
     
-       # Set up Docker Buildx (if using multi-platform builds)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # Build the Docker image from the Dockerfile
-      - name: Build Docker image
-        run: |
-          docker build -t python2-image .
-          
       # Setup environment
       - name: Setup environment
         run: |
           sudo add-apt-repository ppa:deadsnakes/ppa
-          
+          sudo apt install python2
           sudo apt-get update && sudo apt-get install -y \
              bc flex git ccache automake lzop bison gperf build-essential \
             zip curl zlib1g-dev g++-multilib python3-networkx libxml2-utils \
