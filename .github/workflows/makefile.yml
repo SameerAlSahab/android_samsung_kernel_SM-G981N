@@ -13,39 +13,37 @@ jobs:
     
       # Setup environment
       - name: Setup environment
-        run: |
-          sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt update
-          sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev \
-          libssl-dev libreadline-dev libffi-dev curl
-
-          curl -O https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
-          tar -xvf Python-2.7.18.tgz
-          cd Python-2.7.18
-          ./configure --enable-optimizations
-           make -j$(nproc)
-           sudo make altinstall         
+        run: |       
             sudo apt-get update && sudo apt-get install -y \
              bc flex git ccache automake lzop bison gperf build-essential \
             zip curl zlib1g-dev g++-multilib python3-networkx libxml2-utils \
             bzip2 libbz2-dev squashfs-tools pngcrush schedtool dpkg-dev \
             liblz4-tool optipng libssl-dev python-is-python3 python3-virtualenv
-            cd ..
-          # Setup repo
-          mkdir -p ~/.bin
-          PATH="$HOME/.bin:$PATH"
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
-          chmod a+rx ~/.bin/repo
+            
+            # Setup repo
+            mkdir -p ~/.bin
+            PATH="$HOME/.bin:$PATH"
+            curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+            chmod a+rx ~/.bin/repo
 
       # Set permissions
       - name: Set permissions
         run: chmod +x build_kernel.sh
         
-      - name: Clear cache
+      - name: python 2 
         run: | 
-             sudo rm -rf ~/.cache
-             sudo rm -rf /tmp/*
-          
+             sudo apt update
+             sudo apt install -y make build-essential libssl-dev zlib1g-dev \
+             libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+             libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev
+             curl https://pyenv.run | bash
+             export PATH="$HOME/.pyenv/bin:$PATH"
+             eval "$(pyenv init --path)"
+             eval "$(pyenv virtualenv-init -)"
+             source ~/.bashrc
+             pyenv install 2.7.18
+             pyenv local 2.7.18
+             python --version
       # Build kernel with debug mode
       - name: Build kernel
         env:
