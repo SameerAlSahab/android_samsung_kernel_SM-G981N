@@ -5,7 +5,7 @@ on:
 jobs:
 
   buildkernel:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       # Checkout repository
@@ -15,6 +15,7 @@ jobs:
       # Setup environment
       - name: Setup environment
         run: |
+          sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt update
           sudo apt install python2
           sudo apt-get update && sudo apt-get install -y \
