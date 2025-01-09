@@ -33,10 +33,6 @@ jobs:
       - name: Clear cache
         run: rm -rf ~/.cache
         
-      - name: Build project
-        run: |
-          env:
-              ACTIONS_STEP_DEBUG: true
           
       # Build kernel with debug mode
       - name: Build kernel
