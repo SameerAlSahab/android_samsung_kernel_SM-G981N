@@ -15,13 +15,22 @@ jobs:
       - name: Setup environment
         run: |
           sudo add-apt-repository ppa:deadsnakes/ppa
-          
-          sudo apt-get update && sudo apt-get install -y \
+          sudo apt update
+          sudo apt install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev \
+          libssl-dev libreadline-dev libffi-dev curl
+
+          curl -O https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
+          tar -xvf Python-2.7.18.tgz
+          cd Python-2.7.18
+          ./configure --enable-optimizations
+           make -j$(nproc)
+           sudo make altinstall         
+            sudo apt-get update && sudo apt-get install -y \
              bc flex git ccache automake lzop bison gperf build-essential \
             zip curl zlib1g-dev g++-multilib python3-networkx libxml2-utils \
             bzip2 libbz2-dev squashfs-tools pngcrush schedtool dpkg-dev \
             liblz4-tool optipng libssl-dev python-is-python3 python3-virtualenv
-            
+            cd ..
           # Setup repo
           mkdir -p ~/.bin
           PATH="$HOME/.bin:$PATH"
