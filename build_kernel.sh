@@ -32,27 +32,29 @@ export KBUILD_BUILD_HOST="Dark-Angel"
 export TC_DIR="$PROTON_CLANG_DIR"
 export PATH="$TC_DIR/bin:$PATH"
 
-# Clone GCC toolchain for ARM32 support
-echo -e "$blue[INFO] Cloning GCC toolchain for ARM32 support...$reset"
-if [ ! -d "$(pwd)/gcc" ]; then
-  git clone --depth=1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9 gcc
-fi
-export CROSS_COMPILE_ARM32=$(pwd)/gcc/bin/arm-linux-androideabi-
-export CROSS_COMPILE=$(pwd)/gcc/bin/aarch64-linux-android-
 
 # Kernel configuration
 DEFCONFIG="vendor/x1q_kor_singlex_defconfig"
 
 echo -e "$blue[INFO] Starting kernel compilation...$reset"
+make clean
+make mrproper
 mkdir -p out
 make O=out ARCH=arm64 "$DEFCONFIG"
-
+CC=clang
+AR=llvm-ar
+NM=llvm-nm
+OBJCOPY=llvm-objcopy
+OBJDUMP=llvm-objdump
+STRIP=llvm-strip
+CROSS_COMPILE=aarch64-linux-gnu-
+CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 # Compile the kernel
 make -j$(nproc) O=out ARCH=arm64 \
   CC=clang AR=llvm-ar NM=llvm-nm \
   OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump \
   STRIP=llvm-strip CROSS_COMPILE=aarch64-linux-gnu- \
-  CROSS_COMPILE_ARM32=arm-linux-gnueabi- KCFLAGS=-w 2>&1 | tee log.txt
+  CROSS_COMPILE_ARM32=arm-linux-gnueabi-  2>&1 | tee log.txt
 
 # Check if the compilation was successful
 if [ -f out/arch/arm64/boot/Image ]; then
