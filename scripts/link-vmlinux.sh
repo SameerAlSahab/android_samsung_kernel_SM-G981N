@@ -32,9 +32,6 @@
 #
 # System.map is generated to document addresses of all kernel symbols
 
-# Export python2 path
-export PATH="$(pwd)/bin:$PATH"
-
 # Error out on error
 set -e
 
@@ -414,7 +411,7 @@ fi
 # CFP instrumentation will change binary, need to be before FIPS
 if [ -n "${CONFIG_CFP}" ]; then
 	echo '  CFP : instrumenting vmlinux... '
-	python2.7 "${srctree}/scripts/cfp/instrument.py" --vmlinux "${objtree}/vmlinux" \
+	python "${srctree}/scripts/cfp/instrument.py" --vmlinux "${objtree}/vmlinux" \
 	--config "${objtree}/.config"  --inplace
 fi
 
