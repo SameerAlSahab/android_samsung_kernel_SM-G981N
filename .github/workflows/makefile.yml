@@ -11,10 +11,6 @@ jobs:
       # Checkout repository
       - uses: actions/checkout@v4
       
-      - name: Set up Python 2.7
-        uses: actions/setup-python@v4
-        with:
-          python-version: '2.7'
 
       - name: Display Python version
         run: python --version
@@ -26,7 +22,9 @@ jobs:
 
       # Setup environment
       - name: Setup environment
-        run: |       
+        run: |   
+            sudo apt update
+            sudo apt install python2.7
             sudo apt-get update && sudo apt-get install -y \
              bc flex git ccache automake lzop bison gperf build-essential \
             zip curl zlib1g-dev g++-multilib python3-networkx libxml2-utils \
@@ -38,6 +36,9 @@ jobs:
             PATH="$HOME/.bin:$PATH"
             curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
             chmod a+rx ~/.bin/repo
+            
+      - name: Display Python version
+        run: python --version
 
       # Set permissions
       - name: Set permissions
