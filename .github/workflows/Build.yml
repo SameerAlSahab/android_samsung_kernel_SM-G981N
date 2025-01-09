@@ -11,6 +11,12 @@ jobs:
       # Checkout repository
       - uses: actions/checkout@v4
       
+      - name: Clean previous build
+        run: make clean
+        
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
+        
       # Setup environment
       - name: Setup environment
         run: |
