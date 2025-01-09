@@ -1050,73 +1050,74 @@ def addr_to_section(hexaddr, sections):
             return section
 
 def parse_sections(vmlinux):
-    """
-    [Nr] Name              Type             Address           Offset
-         Size              EntSize          Flags  Link  Info  Align
-    [ 0]                   NULL             0000000000000000  00000000
-         0000000000000000  0000000000000000           0     0     0
-    [ 1] .head.text        PROGBITS         ffffffc000205000  00005000
-         0000000000000500  0000000000000000  AX       0     0     64
-    {
-      'name': '.head.text',
-      'size': 0,
-      'type': PROGBITS,
-      ...
-    }
-    """
-    proc = subprocess.Popen([OBJDUMP, '--section-headers', vmlinux], stdout=subprocess.PIPE)
-    f = each_procline(proc)
-    d = {
-        'sections': [],
-        'section_idx': {},
-    }
-    it = iter(f)
-    section_idx = 0
-    while True:
-        try:
-            line = it.next()
-        except StopIteration:
-            break
+	"""
+	[Nr] Name			  Type			 Address		   Offset
+		 Size			  EntSize		  Flags  Link  Info  Align
+	[ 0]				   NULL			 0000000000000000  00000000
+		 0000000000000000  0000000000000000		   0	 0	 0
+	[ 1] .head.text		PROGBITS		 ffffffc000205000  00005000
+		 0000000000000500  0000000000000000  AX	   0	 0	 64
+	{
+	  'name': '.head.text',
+	  'size': 0,
+	  'type': PROGBITS,
+	  ...
+	}
+	"""
+	proc = subprocess.Popen([OBJDUMP, '--section-headers', vmlinux], stdout=subprocess.PIPE)
+	f = each_procline(proc)
+	d = {
+		'sections': [],
+		'section_idx': {},
+	}
+	it = iter(f)
+	section_idx = 0
+	while True:
+		try:
+			line = next(it)
+		except StopIteration:
+			break
 
-        m = re.search(r'^Sections:', line)
-        if m:
-            # first section
-            it.next()
-            continue
+		m = re.search(r'^Sections:', line)
+		if m:
+			# first section
+			next(it)
+			continue
 
-        m = re.search((
-            # [Nr] Name              Type             Address           Offset
-            r'^\s*(?P<number>\d+)'
-            r'\s+(?P<name>[^\s]*)'
-            r'\s+(?P<size>{hex_re})'
-            r'\s+(?P<address>{hex_re})'
-            r'\s+(?P<lma>{hex_re})'
-            r'\s+(?P<offset>{hex_re})'
-            r'\s+(?P<align>[^\s]+)'
-            ).format(hex_re=hex_re), line)
-        if m:
-            section = {}
+		m = re.search((
+			# [Nr] Name			  Type			 Address		   Offset
+			r'^\s*(?P<number>\d+)'
+			r'\s+(?P<name>[^\s]*)'
+			r'\s+(?P<size>{hex_re})'
+			r'\s+(?P<address>{hex_re})'
+			r'\s+(?P<lma>{hex_re})'
+			r'\s+(her>hex_re})'
+			r'\s+(?P<offset>{hex_re})'
+			r'\s+(?P<align>[^\s]+)'
+			).format(hex_re=hex_re), line)
+		if m:
+			section = {}
 
-            d['section_idx'][m.group('name')] = int(m.group('number'))
+			d['section_idx'][m.group('name')] = int(m.group('number'))
 
-            def parse_power(x):
-                m = re.match(r'(?P<base>\d+)\*\*(?P<exponent>\d+)', x)
-                return int(m.group('base'))**int(m.group('exponent'))
-            section.update(coerce(m.groupdict(), [
-                [_int, ['size', 'address', 'offset', 'lma']],
-                [int, ['number']],
-                [parse_power, ['align']]]))
+			def parse_power(x):
+				m = re.match(r'(?P<base>\d+)\*\*(?P<exponent>\d+)', x)
+				return int(m.group('base'))**int(m.group('exponent'))
+			section.update(coerce(m.groupdict(), [
+				[_int, ['size', 'address', 'offset', 'lma']],
+				[int, ['number']],
+				[parse_power, ['align']]]))
 
-            line = it.next()
-            # CONTENTS, ALLOC, LOAD, READONLY, CODE
-            m = re.search((
-            r'\s+(?P<type>.*)'
-            ).format(hex_re=hex_re), line)
-            section.update(m.groupdict())
+			line = next(it)
+			# CONTENTS, ALLOC, LOAD, READONLY, CODE
+			m = re.search((
+			r'\s+(?P<type>.*)'
+			).format(hex_re=hex_re), line)
+			section.update(m.groupdict())
 
-            d['sections'].append(section)
+			d['sections'].append(section)
 
-    return d
+	return d
 
 def coerce(dic, funcs, default=lambda x: x):
     field_to_func = {}
