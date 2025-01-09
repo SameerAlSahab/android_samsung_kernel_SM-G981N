@@ -1,65 +1,37 @@
 #!/bin/bash
-# Copy right by zetaxbyte
-# Contact: t.me/@zetaxbyte
+# copy right by zetaxbyte
+# you can rich me on telegram t.me/@zetaxbyte
+# flags of proton clang
 
-# Define colors for output
-cyan="\033[96m"
-green="\033[92m"
-red="\033[91m"
-blue="\033[94m"
-yellow="\033[93m"
-reset="\033[0m"
+sudo apt-get install clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python3-clang
 
-# Install necessary packages
-echo -e "$blue[INFO] Installing dependencies...$reset"
-sudo apt-get update && sudo apt-get install -y \
-  clang lld llvm gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu \
-  python3-clang
-
-# Check if the Proton Clang directory exists
-PROTON_CLANG_DIR="$(pwd)/proton-clang"
-if [ -d "$PROTON_CLANG_DIR" ]; then
-  echo -e "$green[INFO] Proton Clang directory found.$reset"
-else
-  echo -e "$yellow[WARNING] Proton Clang directory not found. Cloning...$reset"
-  git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r536225 "$PROTON_CLANG_DIR"
-  echo -e "$green[INFO] Cloning completed.$reset"
-fi
-
-# Set environment variables
-export KBUILD_BUILD_USER="Sudoooo"
-export KBUILD_BUILD_HOST="Dark-Angel"
-export TC_DIR="$PROTON_CLANG_DIR"
-export PATH="$TC_DIR/bin:$PATH"
+sudo apt-get install gcc-aarch64-linux-gnu
 
 
-# Kernel configuration
+
+git clone https://gitlab.com/LeCmnGend/clang.git -b clang-18 --depth=1 $(pwd)/proton-clang
+
+
+
+
+# change DEFCONFIG to you are defconfig name or device codename
+
 DEFCONFIG="vendor/x1q_kor_singlex_defconfig"
 
-echo -e "$blue[INFO] Starting kernel compilation...$reset"
-make clean
-make mrproper
-mkdir -p out
-make O=out ARCH=arm64 "$DEFCONFIG"
-CC=clang
-AR=llvm-ar
-NM=llvm-nm
-OBJCOPY=llvm-objcopy
-OBJDUMP=llvm-objdump
-STRIP=llvm-strip
-CROSS_COMPILE=aarch64-linux-gnu-
-CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-# Compile the kernel
-make -j$(nproc) O=out ARCH=arm64 \
-  CC=clang AR=llvm-ar NM=llvm-nm \
-  OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump \
-  STRIP=llvm-strip CROSS_COMPILE=aarch64-linux-gnu- \
-  CROSS_COMPILE_ARM32=arm-linux-gnueabi-  2>&1 | tee log.txt
+# you can set you name or host name(optional)
 
-# Check if the compilation was successful
-if [ -f out/arch/arm64/boot/Image ]; then
-  echo -e "$cyan[INFO] Kernel compiled successfully!$reset"
-else
-  echo -e "$red[ERROR] Compilation failed. Check log.txt for details.$reset"
-  exit 1
-fi
+export KBUILD_BUILD_USER="Sudoooo"
+export KBUILD_BUILD_HOST="Dark-Angel"
+
+# do not modify TC_DIR and export PATCH it's been including with the proton-clang dir
+
+TC_DIR="$(pwd)/proton-clang"
+
+export PATH="$TC_DIR/bin:$PATH"
+export CONFIG_NO_ERROR_ON_MISMATCH=y
+export CONFIG_DEBUG_SECTION_MISMATCH=y
+mkdir -p out
+make O=out ARCH=arm64 $DEFCONFIG
+
+make -j$(nproc --all) O=out ARCH=arm64 CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee log.txt
+
