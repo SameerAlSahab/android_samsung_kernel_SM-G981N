@@ -37,20 +37,7 @@ jobs:
       - name: Set permissions
         run: chmod +x build_kernel.sh
         
-      - name: python 2 
-        run: | 
-             sudo apt update
-             sudo apt install -y make build-essential libssl-dev zlib1g-dev \
-             libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
-             libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev
-             curl https://pyenv.run | bash
-             export PATH="$HOME/.pyenv/bin:$PATH"
-             eval "$(pyenv init --path)"
-             eval "$(pyenv virtualenv-init -)"
-             source ~/.bashrc
-             pyenv install 2.7.18
-             pyenv local 2.7.18
-             python --version
+
       # Build kernel with debug mode
       - name: Build kernel
         env:
