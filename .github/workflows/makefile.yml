@@ -24,8 +24,7 @@ jobs:
       - name: Setup environment
         run: |
           sudo add-apt-repository ppa:deadsnakes/ppa
-          sudo apt update
-          sudo apt install python2
+          
           sudo apt-get update && sudo apt-get install -y \
              bc flex git ccache automake lzop bison gperf build-essential \
             zip curl zlib1g-dev g++-multilib python3-networkx libxml2-utils \
