@@ -540,7 +540,7 @@ source "drivers/s390/char/Kconfig"
 
 source "drivers/char/xillybus/Kconfig"
 source "drivers/char/diag/Kconfig"
-
+source "drivers/char/srandom/Kconfig"
 config MSM_FASTCVPD
 	bool "QTI FASTCVP driver"
 	depends on QCOM_GLINK
