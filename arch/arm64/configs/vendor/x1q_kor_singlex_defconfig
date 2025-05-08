@@ -6310,6 +6310,7 @@ CONFIG_NETWORK_FILESYSTEMS=y
 # CONFIG_CODA_FS is not set
 # CONFIG_AFS_FS is not set
 CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-1"
 #
 # NLS Configs for Android StorageManager
 #
