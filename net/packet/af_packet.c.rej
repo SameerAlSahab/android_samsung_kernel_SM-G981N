@@ -1,0 +1,10 @@
+--- net/packet/af_packet.c
++++ net/packet/af_packet.c
+@@ -4425,6 +4445,7 @@ static int packet_set_ring(struct sock *sk, union tpacket_req_u *req_u,
+ 	}
+ 
+ out_free_pg_vec:
++	bitmap_free(rx_owner_map);
+ 	if (pg_vec)
+ 		free_pg_vec(pg_vec, order, req->tp_block_nr);
+ out:
