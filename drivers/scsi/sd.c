@@ -3214,23 +3214,17 @@ static int sd_revalidate_disk(struct gendisk *disk)
 	dev_max = min_not_zero(dev_max, sdkp->max_xfer_blocks);
 	q->limits.max_dev_sectors = logical_to_sectors(sdp, dev_max);
 
-	if (sd_validate_opt_xfer_size(sdkp, dev_max))
-		rw_max = q->limits.io_opt =
-			sdkp->opt_xfer_blocks * sdp->sector_size;
-	else
-		rw_max = min_not_zero(logical_to_sectors(sdp, dev_max),
-				      (sector_t)BLK_DEF_MAX_SECTORS);
+/* Keep Samsung's structure but add the safety fix */
+if (sd_validate_opt_xfer_size(sdkp, dev_max)) {
+    rw_max = q->limits.io_opt = sdkp->opt_xfer_blocks * sdp->sector_size;
+} else {
+    q->limits.io_opt = 0;  // <-- Mainline safety addition
+    rw_max = min_not_zero(logical_to_sectors(sdp, dev_max),
+                (sector_t)BLK_DEF_MAX_SECTORS);
+}
 
-	/* IOPP-max_sectors-v1.0.4.14 */
-	rw_max = max(rw_max, (unsigned int)BLK_DEF_MAX_SECTORS);
-
-	/* Do not exceed controller limit */
-	rw_max = min(rw_max, queue_max_hw_sectors(q));
-
-	/*
-	 * Only update max_sectors if previously unset or if the current value
-	 * exceeds the capabilities of the hardware.
-	 */
+/* IOPP-max_sectors-v1.0.4.14 */  // <-- Keep Samsung comment
+rw_max = max(rw_max, (unsigned int)BLK_DEF_MAX_SECTORS);
 	if (sdkp->first_scan ||
 	    q->limits.max_sectors > q->limits.max_dev_sectors ||
 	    q->limits.max_sectors > q->limits.max_hw_sectors)
