@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /* Updated: Karl MacMillan <kmacmillan@tresys.com>
  *
  *	Added conditional policy language extensions
@@ -9,9 +10,6 @@
  * Copyright (C) 2007 Hewlett-Packard Development Company, L.P.
  * Copyright (C) 2003 - 2004 Tresys Technology, LLC
  * Copyright (C) 2004 Red Hat, Inc., James Morris <jmorris@redhat.com>
- *	This program is free software; you can redistribute it and/or modify
- *	it under the terms of the GNU General Public License as published by
- *	the Free Software Foundation, version 2.
  */
 
 #include <linux/kernel.h>
@@ -19,6 +17,7 @@
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/fs.h>
+#include <linux/fs_context.h>
 #include <linux/mount.h>
 #include <linux/mutex.h>
 #include <linux/init.h>
@@ -157,54 +156,38 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	if (sscanf(page, "%d", &new_value) != 1)
 		goto out;
 
-// [ SEC_SELINUX_PORTING_COMMON
-#ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
-	// If always enforce option is set, selinux is always enforcing
-	new_value = 1;
-
-	old_value = enforcing_enabled(state);
-	length = avc_has_perm(&selinux_state,
-			current_sid(), SECINITSID_SECURITY,
-			SECCLASS_SECURITY, SECURITY__SETENFORCE,
-			NULL);
-	audit_log(audit_context(), GFP_KERNEL, AUDIT_MAC_STATUS,
-		"config_always_enforce - true; enforcing=%d old_enforcing=%d auid=%u ses=%u"
-		" enabled=%d old-enabled=%d lsm=selinux res=1",
-		new_value, selinux_enforcing, // SEC_SELINUX_PORTING_COMMON Change to use RKP 
-		from_kuid(&init_user_ns, audit_get_loginuid(current)),
-		audit_get_sessionid(current),
-		selinux_enabled, selinux_enabled);
-	enforcing_set(state, new_value);
-	selinux_enforcing = new_value;
-	if (new_value)
-		avc_ss_reset(state->avc, 0);
-	selnl_notify_setenforce(new_value);
-	selinux_status_update_setenforce(state, new_value);
-#elif defined(CONFIG_SECURITY_SELINUX_ALWAYS_PERMISSIVE)
-	// If always permissive option is set, selinux is always permissive
-	new_value = 0;
-
-	old_value = enforcing_enabled(state);
-	length = avc_has_perm(&selinux_state,
-			current_sid(), SECINITSID_SECURITY,
-			SECCLASS_SECURITY, SECURITY__SETENFORCE,
-			NULL);
-	audit_log(audit_context(), GFP_KERNEL, AUDIT_MAC_STATUS,
-		"config_always_permissive - true; enforcing=%d old_enforcing=%d auid=%u ses=%u"
-		" enabled=%d old-enabled=%d lsm=selinux res=1",
-		new_value, selinux_enforcing, // SEC_SELINUX_PORTING_COMMON Change to use RKP 
-		from_kuid(&init_user_ns, audit_get_loginuid(current)),
-		audit_get_sessionid(current),
-		selinux_enabled, selinux_enabled);
-	enforcing_set(state, new_value);
-	selinux_enforcing = new_value;
-	selnl_notify_setenforce(new_value);
-	selinux_status_update_setenforce(state, new_value);
-#else
 	new_value = !!new_value;
 
 	old_value = enforcing_enabled(state);
-	if (new_value != selinux_enforcing) { // SEC_SELINUX_PORTING_COMMON Change to use RKP 
+#ifdef CONFIG_SECURITY_SELINUX_ALWAYS_ENFORCE
+ 	// If always enforce option is set, selinux is always enforcing
+ 	new_value = 1;
+#elif defined(CONFIG_SECURITY_SELINUX_ALWAYS_PERMISSIVE)
+	// If always permissive option is set, selinux is always permissive
+	new_value = 0;
+#endif
+
+// [ SEC_SELINUX_PORTING_COMMON
+#ifdef CONFIG_ALWAYS_ENFORCE
+	// If build is user build and enforce option is set, selinux is always enforcing
+	new_value = 1;
+    length = avc_has_perm(&selinux_state,
+				      current_sid(), SECINITSID_SECURITY,
+				      SECCLASS_SECURITY, SECURITY__SETENFORCE,
+				      NULL);
+	audit_log(audit_context(), GFP_KERNEL, AUDIT_MAC_STATUS,
+			"enforcing=%d old_enforcing=%d auid=%u ses=%u"
+			" enabled=%d old-enabled=%d lsm=selinux res=1",
+			new_value, selinux_enforcing,
+			from_kuid(&init_user_ns, audit_get_loginuid(current)),
+			audit_get_sessionid(current),
+			selinux_enabled, selinux_enabled);
+    enforcing_set(state, new_value);
+	avc_ss_reset(state->avc, 0);
+	selnl_notify_setenforce(new_value);
+	selinux_status_update_setenforce(state, new_value);
+#else
+	if (new_value != selinux_enforcing) { // SEC_SELINUX_PORTING_COMMON Change to use RKP
 		length = avc_has_perm(&selinux_state,
 				      current_sid(), SECINITSID_SECURITY,
 				      SECCLASS_SECURITY, SECURITY__SETENFORCE,
@@ -224,7 +207,7 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 		selnl_notify_setenforce(new_value);
 		selinux_status_update_setenforce(state, new_value);
 		if (!new_value)
-			call_lsm_notifier(LSM_POLICY_CHANGE, NULL);
+			call_blocking_lsm_notifier(LSM_POLICY_CHANGE, NULL);
 	}
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
@@ -1424,7 +1407,7 @@ static int sel_make_bools(struct selinux_fs_info *fsi)
 			goto out;
 		}
 
-		isec = (struct inode_security_struct *)inode->i_security;
+		isec = selinux_inode(inode);
 		ret = security_genfs_sid(fsi->state, "selinuxfs", page,
 					 SECCLASS_FILE, &sid);
 		if (ret) {
@@ -1581,6 +1564,7 @@ static struct avc_cache_stats *sel_avc_get_stat_idx(loff_t *idx)
 		*idx = cpu + 1;
 		return &per_cpu(avc_cache_stats, cpu);
 	}
+	(*idx)++;
 	return NULL;
 }
 
@@ -1996,7 +1980,7 @@ static struct dentry *sel_make_dir(struct dentry *dir, const char *name,
 
 #define NULL_FILE_NAME "null"
 
-static int sel_fill_super(struct super_block *sb, void *data, int silent)
+static int sel_fill_super(struct super_block *sb, struct fs_context *fc)
 {
 	struct selinux_fs_info *fsi;
 	int ret;
@@ -2056,7 +2040,7 @@ static int sel_fill_super(struct super_block *sb, void *data, int silent)
 	}
 
 	inode->i_ino = ++fsi->last_ino;
-	isec = (struct inode_security_struct *)inode->i_security;
+	isec = selinux_inode(inode);
 	isec->sid = SECINITSID_DEVNULL;
 	isec->sclass = SECCLASS_CHR_FILE;
 	isec->initialized = LABEL_INITIALIZED;
@@ -2071,6 +2055,8 @@ static int sel_fill_super(struct super_block *sb, void *data, int silent)
 	}
 
 	ret = sel_make_avc_files(dentry);
+	if (ret)
+		goto err;
 
 	dentry = sel_make_dir(sb->s_root, "ss", &fsi->last_ino);
 	if (IS_ERR(dentry)) {
@@ -2120,10 +2106,19 @@ err:
 	return ret;
 }
 
-static struct dentry *sel_mount(struct file_system_type *fs_type,
-		      int flags, const char *dev_name, void *data)
+static int sel_get_tree(struct fs_context *fc)
 {
-	return mount_single(fs_type, flags, data, sel_fill_super);
+	return get_tree_single(fc, sel_fill_super);
+}
+
+static const struct fs_context_operations sel_context_ops = {
+	.get_tree	= sel_get_tree,
+};
+
+static int sel_init_fs_context(struct fs_context *fc)
+{
+	fc->ops = &sel_context_ops;
+	return 0;
 }
 
 static void sel_kill_sb(struct super_block *sb)
@@ -2134,7 +2129,7 @@ static void sel_kill_sb(struct super_block *sb)
 
 static struct file_system_type sel_fs_type = {
 	.name		= "selinuxfs",
-	.mount		= sel_mount,
+	.init_fs_context = sel_init_fs_context,
 	.kill_sb	= sel_kill_sb,
 };
 
@@ -2146,7 +2141,11 @@ static int __init init_sel_fs(void)
 	struct qstr null_name = QSTR_INIT(NULL_FILE_NAME,
 					  sizeof(NULL_FILE_NAME)-1);
 	int err;
-
+// [ SEC_SELINUX_PORTING_COMMON
+#ifdef CONFIG_ALWAYS_ENFORCE
+	selinux_enabled = 1;
+#endif
+// ] SEC_SELINUX_PORTING_COMMON
 	if (!selinux_enabled)
 		return 0;
 
